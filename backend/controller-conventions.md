@@ -1,0 +1,374 @@
+# Laravel Controller Conventions
+
+Guide for creating clean, maintainable controllers in Laravel with Inertia.js.
+
+## Controller Structure
+
+Controllers should be thin and focused on HTTP concerns:
+- Receive requests
+- Validate input (using Data classes)
+- Coordinate business logic (delegate to services/models)
+- Return responses (Inertia renders or redirects)
+
+**Don't:** Put business logic in controllers
+**Do:** Keep controllers focused on HTTP layer
+
+## Validation: Use Data Classes, Not FormRequests
+
+**IMPORTANT:** Prefer Data classes over FormRequest classes for validation.
+
+### Why Data Classes Over FormRequests?
+
+1. **Single Source of Truth** - Data class defines both structure AND validation
+2. **Type Safety** - Get typed objects, not arrays
+3. **Frontend Integration** - Automatically generates TypeScript types
+4. **Cleaner API** - `DataClass::validateAndCreate()` vs manually calling `$request->validated()`
+5. **Reusability** - Same Data class can be used in controllers, services, jobs, etc.
+
+### ❌ BAD - Using FormRequest
+
+```php
+// app/Http/Requests/StoreDogInvitationRequest.php
+class StoreDogInvitationRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'email' => ['required', 'email'],
+            'dog_id' => ['required', 'exists:dogs,id'],
+            'message' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+}
+
+// Controller
+class DogInvitationController extends Controller
+{
+    public function store(StoreDogInvitationRequest $request)
+    {
+        $validated = $request->validated(); // Returns array
+
+        // Now you have a loosely-typed array to work with
+        DogInvitation::create($validated);
+
+        return redirect()->back();
+    }
+}
+```
+
+**Problems:**
+- Returns untyped array from `$request->validated()`
+- No TypeScript types for frontend
+- Validation rules separate from data structure
+- Can't reuse in other contexts (jobs, services, etc.)
+
+### ✅ GOOD - Using Data Classes
+
+```php
+// app/Data/DogInvitation/StoreDogInvitationData.php
+use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Attributes\Validation\Email;
+use Spatie\LaravelData\Attributes\Validation\Exists;
+use Spatie\LaravelData\Attributes\Validation\Max;
+
+class StoreDogInvitationData extends Data
+{
+    public function __construct(
+        #[Required]
+        #[Email]
+        public string $email,
+
+        #[Required]
+        #[Exists('dogs', 'id')]
+        public int $dogId,
+
+        #[Max(500)]
+        public ?string $message = null,
+    ) {}
+}
+
+// Controller
+class DogInvitationController extends Controller
+{
+    public function store(Request $request)
+    {
+        // Validates AND returns typed object in one line
+        $data = StoreDogInvitationData::validateAndCreate($request->all());
+
+        // $data is now a typed StoreDogInvitationData object
+        DogInvitation::create([
+            'email' => $data->email,
+            'dog_id' => $data->dogId,
+            'message' => $data->message,
+        ]);
+
+        return redirect()->back();
+    }
+}
+```
+
+**Benefits:**
+- Type-safe `$data` object
+- Validation and structure in one place
+- Can add `#[TypeScript()]` for frontend types
+- Reusable in services, jobs, etc.
+- Clean, readable validation rules
+
+## Inertia Props: Always Use Data Classes
+
+**IMPORTANT:** When returning props to Vue components, ALWAYS use Data classes for type safety.
+
+### ❌ BAD - Raw Arrays
+
+```php
+class DogController extends Controller
+{
+    public function show(Dog $dog)
+    {
+        return Inertia::render('Dogs/Show', [
+            'dog' => [
+                'id' => $dog->id,
+                'name' => $dog->name,
+                'breed' => $dog->breed,
+                'birth_date' => $dog->birth_date,
+                'weight' => $dog->weight,
+                'photo' => $dog->photo,
+                // ... 10 more properties
+            ],
+            'stats' => [
+                'totalActivities' => 42,
+                'averageWeight' => 25.5,
+                'lastActivity' => '2025-01-15',
+            ],
+            'lastMood' => $lastMood,
+            'dailyFoodStats' => $dailyFoodStats,
+        ]);
+    }
+}
+```
+
+**Problems:**
+- No TypeScript types in frontend
+- Manually update frontend `defineProps` when adding properties
+- Easy to make typos in property names
+- No IDE autocomplete in Vue components
+- Changes break silently
+
+### ✅ GOOD - Dedicated Props Data Class
+
+```php
+// app/Data/Http/Controllers/DogController/ShowPropsData.php
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+/**
+ * Props for Dogs/Show page
+ *
+ * @property Dog $dog The dog being displayed
+ * @property Collection<int, Dog> $allDogs All user's dogs for sidebar
+ */
+#[TypeScript()]
+class ShowPropsData extends Data
+{
+    public function __construct(
+        public Dog $dog,
+
+        #[DataCollectionOf(Dog::class)]
+        public Collection $allDogs,
+
+        public DogStatsData $stats,
+        public ?MoodData $lastMood,
+        public DailyStatsData $dailyFoodStats,
+        public DailyStatsData $dailyDrinkStats,
+        public DailyStatsData $dailyPeeStats,
+        public DailyStatsData $dailyPoopStats,
+    ) {}
+}
+
+// Controller
+class DogController extends Controller
+{
+    public function show(Dog $dog)
+    {
+        return Inertia::render('Dogs/Show', ShowPropsData::from([
+            'dog' => $dog,
+            'allDogs' => $allDogs,
+            'stats' => $stats,
+            'lastMood' => $lastMood,
+            'dailyFoodStats' => $dailyFoodStats,
+            'dailyDrinkStats' => $dailyDrinkStats,
+            'dailyPeeStats' => $dailyPeeStats,
+            'dailyPoopStats' => $dailyPoopStats,
+        ]));
+    }
+}
+```
+
+**Benefits:**
+- Frontend automatically gets TypeScript types
+- Add/remove props without touching frontend
+- IDE autocomplete in Vue components
+- Type errors caught at compile time
+- Self-documenting controller responses
+
+### Frontend Usage (Automatic)
+
+After running `composer dev-setup`, Vue components automatically get types:
+
+```vue
+<script setup lang="ts">
+import type { ShowPropsData } from '@/types/generated'
+
+// Fully typed props!
+const props = defineProps<ShowPropsData>()
+
+// IDE autocomplete works:
+console.log(props.dog.name)
+console.log(props.stats.totalActivities)
+</script>
+```
+
+### Naming Convention for Props Data Classes
+
+```
+App/Data/Http/Controllers/{ControllerName}/{MethodName}PropsData.php
+```
+
+Examples:
+- `App/Data/Http/Controllers/DogController/ShowPropsData.php`
+- `App/Data/Http/Controllers/DogController/IndexPropsData.php`
+- `App/Data/Http/Controllers/DogController/EditPropsData.php`
+- `App/Data/Http/Controllers/OrderController/ShowPropsData.php`
+
+**Important:** Always add `#[TypeScript()]` attribute to Props Data classes!
+
+## Resource Controllers
+
+Use Laravel's resource controller pattern:
+
+```bash
+php artisan make:controller OrderController --resource
+```
+
+Standard methods:
+- `index()` - List all resources
+- `create()` - Show create form (if not using Inertia modal)
+- `store()` - Create new resource
+- `show()` - Display single resource
+- `edit()` - Show edit form (if not using Inertia modal)
+- `update()` - Update existing resource
+- `destroy()` - Delete resource
+
+**With Inertia:** Often skip `create()` and `edit()` methods - render forms in `index()` or `show()` instead.
+
+## Return Types
+
+Always specify return types:
+
+```php
+use Inertia\Response as InertiaResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+
+public function index(): InertiaResponse
+{
+    return Inertia::render('Orders/Index', ...);
+}
+
+public function store(Request $request): RedirectResponse
+{
+    // ...
+    return redirect()->route('orders.show', $order);
+}
+
+public function apiIndex(): JsonResponse
+{
+    return response()->json(['orders' => $orders]);
+}
+```
+
+## Authorization
+
+Use policies for authorization:
+
+```php
+// In controller
+public function update(Request $request, Order $order): RedirectResponse
+{
+    // Method 1: authorize() helper
+    $this->authorize('update', $order);
+
+    // Method 2: Gate facade
+    if (Gate::denies('update', $order)) {
+        abort(403);
+    }
+
+    // Method 3: In route middleware
+    // Route::put('orders/{order}', [OrderController::class, 'update'])
+    //     ->middleware('can:update,order');
+
+    // ...
+}
+```
+
+**Prefer:** `$this->authorize()` for clear inline authorization checks.
+
+## Query Optimization
+
+Always eager load relationships to avoid N+1 queries:
+
+```php
+public function index(): InertiaResponse
+{
+    $orders = Order::query()
+        ->with(['customer', 'items.product']) // Eager load
+        ->latest()
+        ->paginate(15);
+
+    return Inertia::render('Orders/Index', IndexPropsData::from([
+        'orders' => $orders,
+    ]));
+}
+```
+
+Use `withCount()` for counting relationships:
+
+```php
+$orders = Order::withCount('items')->get();
+// Now each order has $order->items_count
+```
+
+## Checklist for Controllers
+
+Before considering a controller complete:
+
+- ✅ Returns typed objects (Data classes), not raw arrays
+- ✅ Uses Data classes for validation (not FormRequest, unless authorization needed)
+- ✅ Uses Props Data classes for all Inertia renders with `#[TypeScript()]`
+- ✅ Props Data classes follow naming convention: `App/Data/Http/Controllers/{ControllerName}/{MethodName}PropsData.php`
+- ✅ Specifies return types for all methods
+- ✅ Eager loads relationships to avoid N+1 queries
+- ✅ Returns flash messages for user feedback
+- ✅ Keeps business logic in services/models, not controllers
+- ✅ Uses named routes for redirects
+- ✅ Uses route model binding for resource parameters
+
+## Common Imports
+
+```php
+// Controllers
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+
+// Models
+use App\Models\Dog;
+use App\Models\Order;
+
+// Data classes
+use App\Data\Http\Controllers\DogController\ShowPropsData;
+use App\Data\DogInvitation\StoreDogInvitationData;
+
+// Services
+use App\Services\DogStatisticsService;
+```
