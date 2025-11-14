@@ -201,6 +201,48 @@ class CreateOrderRequestData extends Data
         public Collection $items,
     ) {}
 }
+
+// App/Data/Controllers/App/OrderController/GetOrdersResponseData.php
+#[TypeScript()]
+class GetOrdersResponseData extends Data
+{
+    public function __construct(
+        #[DataCollectionOf(OrderData::class)]
+        public Collection $orders,
+        public int $total,
+    ) {}
+}
+
+// Controller
+public function index(): JsonResponse
+{
+    $orders = Order::all();
+
+    return response()->json(
+        GetOrdersResponseData::from([
+            'orders' => $orders,
+            'total' => $orders->count(),
+        ])
+    );
+}
+```
+
+**Why?**
+- Frontend gets TypeScript types automatically
+- Type-safe access to all properties
+- Self-documenting API contract
+- No need to manually maintain frontend types
+
+**❌ NEVER return raw arrays from API endpoints:**
+```php
+// BAD - No type safety, no IntelliSense
+public function index(): JsonResponse
+{
+    return response()->json([
+        'orders' => Order::all(),
+        'total' => Order::count(),
+    ]);
+}
 ```
 
 ### ❌ BAD Use Cases - DON'T Create Data Classes For:
@@ -267,14 +309,16 @@ Ask yourself:
 1. **Is this an Eloquent model?** → ❌ NO, just use the model
 2. **Am I returning an array/object from a method?** → ✅ YES, create Data class
 3. **Am I building Inertia props?** → ✅ YES, create Data class for the entire props object
-4. **Is this a JSON column in the database?** → ✅ YES, create Data class
-5. **Is this a single primitive value?** → ❌ NO, return the value directly
-6. **Do I need validation?** → ✅ YES, create Data class with validation annotations
+4. **Am I returning JSON from an API endpoint?** → ✅ **YES, ALWAYS create Data class**
+5. **Is this a JSON column in the database?** → ✅ YES, create Data class
+6. **Is this a single primitive value?** → ❌ NO, return the value directly
+7. **Do I need validation?** → ✅ YES, create Data class with validation annotations
 
 ### Rule of Thumb
 
 **Create a Data class when:**
 - You would otherwise return an associative array (`['key' => 'value']`)
+- **You're returning JSON from ANY endpoint (Inertia or API)**
 - You need type safety for complex structures
 - You're building a data contract between layers (service → controller → view)
 

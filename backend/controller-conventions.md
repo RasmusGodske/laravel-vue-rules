@@ -337,6 +337,82 @@ $orders = Order::withCount('items')->get();
 // Now each order has $order->items_count
 ```
 
+## JSON API Responses
+
+**CRITICAL:** Always use Data classes for JSON API responses, just like Inertia props.
+
+### ❌ WRONG - Raw Arrays
+```php
+public function getCalculatables(Commission $commission, int $dataSourceId): JsonResponse
+{
+    $calculatables = $commission->calculatables()->get();
+
+    return response()->json([
+        'calculatables' => $calculatables->map(fn($c) => [
+            'id' => $c->id,
+            'title' => $c->title,
+        ]),
+    ]);
+}
+```
+
+**Problems:**
+- No TypeScript types for frontend
+- No IDE autocomplete
+- Easy to make typos in property names
+- Can't enforce structure across endpoints
+
+### ✅ CORRECT - Data Classes
+```php
+// App/Data/Controllers/App/CommissionController/GetCalculatablesResponseData.php
+#[TypeScript()]
+class GetCalculatablesResponseData extends Data
+{
+    public function __construct(
+        #[DataCollectionOf(CalculatableItemData::class)]
+        public Collection $calculatables,
+    ) {}
+}
+
+#[TypeScript()]
+class CalculatableItemData extends Data
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+    ) {}
+}
+
+// Controller
+public function getCalculatables(Commission $commission, int $dataSourceId): JsonResponse
+{
+    $calculatables = $commission->calculatables()->get();
+
+    return response()->json(
+        GetCalculatablesResponseData::from([
+            'calculatables' => $calculatables,
+        ])
+    );
+}
+```
+
+**Benefits:**
+- Frontend automatically gets types
+- Type-safe API contract
+- Refactoring-safe
+- Self-documenting
+
+### Naming Convention for API Response Data Classes
+
+```
+App/Data/Controllers/{Area}/{Controller}/{MethodName}ResponseData.php
+```
+
+Examples:
+- `App/Data/Controllers/App/CommissionController/GetCalculatablesResponseData.php`
+- `App/Data/Controllers/App/OrderController/GetOrderDetailsResponseData.php`
+- `App/Data/Controllers/Api/V1/UserController/CreateUserResponseData.php`
+
 ## Checklist for Controllers
 
 Before considering a controller complete:
@@ -344,7 +420,9 @@ Before considering a controller complete:
 - ✅ Returns typed objects (Data classes), not raw arrays
 - ✅ Uses Data classes for validation (not FormRequest, unless authorization needed)
 - ✅ Uses Props Data classes for all Inertia renders with `#[TypeScript()]`
+- ✅ Uses Response Data classes for all JSON API responses with `#[TypeScript()]`
 - ✅ Props Data classes follow naming convention: `App/Data/Http/Controllers/{ControllerName}/{MethodName}PropsData.php`
+- ✅ API Response Data classes follow naming convention: `App/Data/Controllers/{Area}/{Controller}/{MethodName}ResponseData.php`
 - ✅ Specifies return types for all methods
 - ✅ Eager loads relationships to avoid N+1 queries
 - ✅ Returns flash messages for user feedback
