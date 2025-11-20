@@ -9,6 +9,8 @@ This repository contains starter convention files for the `.claude/rules/` direc
 - **backend/** - Backend conventions (PHP, Laravel, Data classes)
 - **frontend/** - Frontend conventions (Vue.js, Components)
 - **dataclasses/** - Spatie Laravel Data patterns
+- **documentation/** - Documentation structure and writing conventions
+- **linear/** - Linear project management conventions
 
 ## Usage
 
@@ -54,6 +56,10 @@ These are **starter templates**. You should:
 ### Backend Rules
 
 - **form-data-classes.md** - When to use Data classes vs arrays, Form Request patterns
+- **controller-conventions.md** - Controller patterns, API responses, validation
+- **database-conventions.md** - Migration patterns, indexes, foreign keys
+- **testing-conventions.md** - Test structure, factory usage, assertions
+- **php-conventions.md** - Class imports, type hints, named arguments
 
 ### Frontend Rules
 
@@ -63,6 +69,14 @@ These are **starter templates**. You should:
 ### Data Class Rules
 
 - **laravel-data.md** - Spatie Laravel Data patterns, validation, TypeScript export
+
+### Documentation Rules
+
+- **README.md** - Documentation structure (domains, layers), file-to-doc mapping, templates, style guidelines
+
+### Linear Rules
+
+- **project-conventions.md** - Linear project structure and management conventions
 
 ## Integration with dev-agent-workflow
 
