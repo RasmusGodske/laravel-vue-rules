@@ -220,6 +220,28 @@ Document what won't work or deliberate constraints.
 
 ---
 
+## Mandatory Review
+
+**🚨 CRITICAL: Before finalizing any project description, you MUST use the project-description-reviewer agent.**
+
+After drafting your project description:
+
+1. **Use the Task tool** to invoke the `project-description-reviewer` agent:
+   ```
+   Use the Task tool with:
+   - description: "Review project description"
+   - prompt: "Review the following project description: [paste your description]"
+   - subagent_type: "project-description-reviewer"
+   ```
+
+2. **Address all feedback** from the reviewer
+
+3. **Only then** create the Linear project
+
+**You do NOT have discretion to skip review.** Even if the description seems complete, invoke the reviewer.
+
+---
+
 ## Examples
 
 See `.claude/rules/linear/examples/project-example.md` for a complete example.

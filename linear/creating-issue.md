@@ -187,6 +187,28 @@ Only include paths if it helps locate a specific bug. Agent can search.
 
 ---
 
+## Mandatory Review
+
+**🚨 CRITICAL: Before finalizing any issue, you MUST use the issue-reviewer agent.**
+
+After drafting your issue:
+
+1. **Use the Task tool** to invoke the `issue-reviewer` agent:
+   ```
+   Use the Task tool with:
+   - description: "Review Linear issue"
+   - prompt: "Review the following issue: [paste your issue description]"
+   - subagent_type: "issue-reviewer"
+   ```
+
+2. **Address all feedback** from the reviewer
+
+3. **Only then** create the Linear issue
+
+**You do NOT have discretion to skip review.** Even if the issue seems complete, invoke the reviewer.
+
+---
+
 ## Examples
 
 See `.claude/rules/linear/examples/issue-examples.md` for multiple examples:

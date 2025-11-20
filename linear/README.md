@@ -58,6 +58,17 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
+## Mandatory Review Policy
+
+**🚨 CRITICAL: All project descriptions and issues MUST be reviewed before creation.**
+
+- **Project descriptions** → Use `project-description-reviewer` agent
+- **Issues** → Use `issue-reviewer` agent
+
+See `creating-project.md` and `creating-issue.md` for review instructions.
+
+---
+
 ## Quick Validation Checklist
 
 Before creating an issue, scan for these red flags:
