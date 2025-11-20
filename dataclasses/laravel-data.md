@@ -365,6 +365,8 @@ class UserData extends Data
 
 ## Validation with Annotations
 
+**📚 For custom validation rules, see [custom-validation-rules.md](./custom-validation-rules.md) - Complete guide with working examples.**
+
 **Use annotations, NOT manual rules!**
 
 ### ❌ WRONG - Manual Rules
