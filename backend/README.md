@@ -28,7 +28,17 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
-### 3. `form-data-classes.md`
+### 3. `controller-responses.md`
+
+**When to read:** Before implementing controller endpoints that return data.
+
+**Covers:** When to use Inertia responses vs JSON responses, decision framework for response types.
+
+**Read now:** `.claude/rules/backend/controller-responses.md`
+
+---
+
+### 4. `form-data-classes.md`
 
 **When to read:** Before creating or modifying forms (create/edit functionality).
 
@@ -38,7 +48,7 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
-### 4. `naming-conventions.md`
+### 5. `naming-conventions.md`
 
 **When to read:** Before creating any new Data classes or Request classes.
 
@@ -48,7 +58,7 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
-### 5. `database-conventions.md`
+### 6. `database-conventions.md`
 
 **When to read:** Before creating migrations or modifying database schema.
 
@@ -58,7 +68,7 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
-### 6. `testing-conventions.md`
+### 7. `testing-conventions.md`
 
 **When to read:** Before writing tests.
 
@@ -68,7 +78,7 @@ Read these files in order based on what you're working on. Each file states when
 
 ---
 
-### 7. Data Class Rules (in different directory)
+### 8. Data Class Rules (in different directory)
 
 **When to read:** Before creating any Spatie Laravel Data classes.
 
