@@ -1,0 +1,30 @@
+{
+    "name": "rasmusgodske/laravel-vue-rules",
+    "description": "Laravel/Vue convention rules for Claude Code",
+    "keywords": ["laravel", "vue", "claude", "rules", "conventions"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "RasmusGodske",
+            "homepage": "https://github.com/RasmusGodske"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RasmusGodske\\LaravelVueRules\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RasmusGodske\\LaravelVueRules\\TechstackRulesServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

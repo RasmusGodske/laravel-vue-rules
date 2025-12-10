@@ -1,1 +1,2 @@
-# Nothing to ignore - all convention files should be tracked
+/vendor/
+composer.lock

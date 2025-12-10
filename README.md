@@ -1,115 +1,88 @@
 # Laravel/Vue Convention Rules
 
-Convention rules for Laravel/Vue projects. These rules are designed to be used with [dev-agent-workflow](https://github.com/RasmusGodske/dev-agent-workflow) Claude Code plugins.
+Convention rules for Laravel/Vue projects, designed to be used with Claude Code's `.claude/rules/` system.
 
-## What This Is
+## Installation
 
-This repository contains starter convention files for the `.claude/rules/` directory structure:
-
-- **backend/** - Backend conventions (PHP, Laravel, Data classes)
-- **frontend/** - Frontend conventions (Vue.js, Components)
-- **dataclasses/** - Spatie Laravel Data patterns
-- **documentation/** - Documentation structure and writing conventions
-- **linear/** - Linear project management conventions
+```bash
+composer require rasmusgodske/laravel-vue-rules --dev
+```
 
 ## Usage
 
-### Quick Setup (via rules-boilerplate plugin)
+### Install rules for the first time
 
 ```bash
-# Install the rules-boilerplate plugin
-/plugin marketplace add https://github.com/RasmusGodske/dev-agent-workflow
-/plugin install rules-boilerplate@dev-agent-workflow
-
-# Run setup (will clone this repo into .claude/rules/)
-/setup-rules
+php artisan techstack-rules:update
 ```
 
-### Manual Setup (Git Submodule)
+This will copy the rules to `.claude/rules/techstack/` in your project.
+
+### Update existing rules
 
 ```bash
-# In your Laravel project root
-git submodule add https://github.com/RasmusGodske/laravel-vue-rules .claude/rules
-
-# Or clone directly
-git clone https://github.com/RasmusGodske/laravel-vue-rules .claude/rules
+php artisan techstack-rules:update --force
 ```
 
-### Update Rules
+**Warning**: Using `--force` will overwrite any customizations you have made to the rules.
+
+### Custom installation path
 
 ```bash
-# Pull latest rules
-cd .claude/rules
-git pull origin main
+php artisan techstack-rules:update --path=.claude/rules/custom-name
 ```
-
-## Customization
-
-These are **starter templates**. You should:
-
-1. **Fork this repository** for your team/organization
-2. **Customize the rules** to match your specific conventions
-3. **Use your fork** in projects via submodule or the plugin
 
 ## What's Included
 
-### Backend Rules
+### Backend Rules (`backend/`)
 
-- **form-data-classes.md** - When to use Data classes vs arrays, Form Request patterns
+- **php-conventions.md** - Class imports, type hints, named arguments
 - **controller-conventions.md** - Controller patterns, API responses, validation
+- **controller-responses.md** - When to use Inertia vs JSON responses
+- **form-data-classes.md** - Form Request patterns with Data classes
+- **naming-conventions.md** - Domain-specific naming conventions
 - **database-conventions.md** - Migration patterns, indexes, foreign keys
 - **testing-conventions.md** - Test structure, factory usage, assertions
-- **php-conventions.md** - Class imports, type hints, named arguments
 
-### Frontend Rules
+### Frontend Rules (`frontend/`)
 
 - **vue-conventions.md** - Vue 3 Composition API, TypeScript, component structure
 - **component-composition.md** - Component splitting, reusability, naming
 
-### Data Class Rules
+### Data Class Rules (`dataclasses/`)
 
 - **laravel-data.md** - Spatie Laravel Data patterns, validation, TypeScript export
+- **custom-validation-rules.md** - Custom validation rules and patterns
 
-### Documentation Rules
+## Path-Based Auto-Loading
 
-- **README.md** - Documentation structure (domains, layers), file-to-doc mapping, templates, style guidelines
+All rules use path-based frontmatter for automatic loading. For example, backend rules only load when working with PHP files:
 
-### Linear Rules
-
-- **project-conventions.md** - Linear project structure and management conventions
-
-## Integration with dev-agent-workflow
-
-These rules are automatically loaded when you activate roles:
-
-```bash
-/roles/backend-engineer  # Loads backend/ rules
-/roles/frontend-engineer # Loads frontend/ rules
-/roles/fullstack-engineer # Loads both
+```yaml
+---
+paths: app/**/*.php
+---
 ```
+
+This means Claude Code automatically loads relevant rules based on what files you're editing.
+
+## Customization
+
+These rules are designed as starting templates. To customize:
+
+1. Install the rules: `php artisan techstack-rules:update`
+2. Edit the files in `.claude/rules/techstack/` to match your conventions
+3. Commit the customized rules to your project
+
+**Note**: Running `techstack-rules:update --force` again will overwrite your customizations. Consider versioning your customized rules in your project.
 
 ## Philosophy
 
 Rules follow these principles:
+
 - **Example-driven** - Show good vs bad patterns
 - **Modern** - Laravel 10+, Vue 3, PHP 8+
-- **Generic** - Easy to customize for any project
 - **Concise** - Focus on "what" and "why", not "how to code"
-
-## Versioning
-
-- Use git tags for versions
-- Fork for project-specific rules
-- Submit PRs for improvements
-
-## Contributing
-
-Have better conventions? PRs welcome!
-
-1. Fork the repository
-2. Update rule files with examples
-3. Test with a Laravel/Vue project
-4. Submit pull request
 
 ## License
 
@@ -117,9 +90,4 @@ MIT License
 
 ## Author
 
-**RasmusGodske**
-- GitHub: [@RasmusGodske](https://github.com/RasmusGodske)
-
-## Related Projects
-
-- [dev-agent-workflow](https://github.com/RasmusGodske/dev-agent-workflow) - Claude Code plugins that use these rules
+**RasmusGodske** - [@RasmusGodske](https://github.com/RasmusGodske)
