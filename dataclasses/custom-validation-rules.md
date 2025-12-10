@@ -1,3 +1,7 @@
+---
+paths: app/Data/**/*.php, app/Rules/**/*.php
+---
+
 # Custom Validation Rules in Laravel Data
 
 **Complete guide with working examples.**

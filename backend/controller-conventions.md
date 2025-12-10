@@ -1,3 +1,7 @@
+---
+paths: app/Http/Controllers/**/*.php
+---
+
 # Laravel Controller Conventions
 
 Guide for creating clean, maintainable controllers in Laravel with Inertia.js.

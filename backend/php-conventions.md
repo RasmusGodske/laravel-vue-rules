@@ -1,3 +1,7 @@
+---
+paths: app/**/*.php
+---
+
 # PHP/Laravel Backend Development Conventions
 
 This document provides comprehensive PHP/Laravel development conventions. Follow these patterns to ensure code consistency, maintainability, and prevent common mistakes that lead to technical debt.

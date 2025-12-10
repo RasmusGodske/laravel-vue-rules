@@ -1,3 +1,7 @@
+---
+paths: app/Data/**/*.php, app/Http/Controllers/**/*.php
+---
+
 # Form Data Classes Pattern
 
 ## Overview

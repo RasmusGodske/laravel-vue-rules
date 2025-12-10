@@ -1,3 +1,7 @@
+---
+paths: app/Data/**/*.php
+---
+
 # Spatie Laravel Data Classes
 
 Guide for creating and working with Spatie Laravel Data classes. These classes provide structured, validated DTOs (Data Transfer Objects) for your Laravel application.

@@ -1,3 +1,7 @@
+---
+paths: tests/**/*.php
+---
+
 # PHP Testing Conventions
 
 This document provides comprehensive PHP/Laravel testing conventions. Follow these patterns to create maintainable, readable tests.

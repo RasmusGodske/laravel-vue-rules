@@ -1,3 +1,7 @@
+---
+paths: app/Http/Controllers/**/*.php
+---
+
 # Controller Response Types
 
 This document defines when to use Inertia responses vs JSON responses in controller endpoints.

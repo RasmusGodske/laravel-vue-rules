@@ -1,3 +1,7 @@
+---
+paths: database/migrations/*.php
+---
+
 # Database Conventions
 
 This document provides database schema design and migration conventions for Laravel applications.

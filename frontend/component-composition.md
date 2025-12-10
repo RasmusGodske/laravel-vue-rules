@@ -1,3 +1,7 @@
+---
+paths: resources/js/Components/**/*.vue
+---
+
 # Component Composition & Single Responsibility
 
 Guide for building maintainable Vue applications through small, focused components with clear responsibilities.

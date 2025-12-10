@@ -1,3 +1,7 @@
+---
+paths: app/**/*.php
+---
+
 # Naming Conventions
 
 ## Data Classes and Request Classes

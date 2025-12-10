@@ -1,92 +1,22 @@
+---
+paths: app/**/*.php
+---
+
 # Backend Development Rules
 
-**⚠️ MANDATORY:** Read this file before writing any backend code.
+These rules are **automatically loaded** when working on PHP files in `app/`.
 
----
+## Available Rules
 
-## Required Convention Files
-
-Read these files in order based on what you're working on. Each file states when it should be read.
-
-### 1. `php-conventions.md` - READ FIRST
-
-**When to read:** Before writing ANY PHP code.
-
-**Covers:** Class imports, Data classes for JSON columns, type hints, named arguments, PHPDoc patterns.
-
-**Read now:** `.claude/rules/backend/php-conventions.md`
-
----
-
-### 2. `controller-conventions.md`
-
-**When to read:** Before creating or modifying controllers, API endpoints, or Inertia pages.
-
-**Covers:** Data classes for Inertia props, Data classes for API responses, validation patterns, query optimization.
-
-**Read now:** `.claude/rules/backend/controller-conventions.md`
-
----
-
-### 3. `controller-responses.md`
-
-**When to read:** Before implementing controller endpoints that return data.
-
-**Covers:** When to use Inertia responses vs JSON responses, decision framework for response types.
-
-**Read now:** `.claude/rules/backend/controller-responses.md`
-
----
-
-### 4. `form-data-classes.md`
-
-**When to read:** Before creating or modifying forms (create/edit functionality).
-
-**Covers:** Form Data Classes pattern (FormContextData, FormRequestData, DetailsData), single form components for create/edit.
-
-**Read now:** `.claude/rules/backend/form-data-classes.md`
-
----
-
-### 5. `naming-conventions.md`
-
-**When to read:** Before creating any new Data classes or Request classes.
-
-**Covers:** Domain-specific naming, avoiding generic names, naming patterns for Data classes.
-
-**Read now:** `.claude/rules/backend/naming-conventions.md`
-
----
-
-### 6. `database-conventions.md`
-
-**When to read:** Before creating migrations or modifying database schema.
-
-**Covers:** Migration patterns, indexes, foreign keys, database design principles.
-
-**Read now:** `.claude/rules/backend/database-conventions.md`
-
----
-
-### 7. `testing-conventions.md`
-
-**When to read:** Before writing tests.
-
-**Covers:** Test structure, factory usage, assertion patterns, test database patterns.
-
-**Read now:** `.claude/rules/backend/testing-conventions.md`
-
----
-
-### 8. Data Class Rules (in different directory)
-
-**When to read:** Before creating any Spatie Laravel Data classes.
-
-**Covers:** When to create Data classes, constructor property promotion, validation annotations, Collection vs Array.
-
-**Read now:** `.claude/rules/dataclasses/laravel-data.md`
-
----
+| Rule File | Loaded For | Covers |
+|-----------|------------|--------|
+| `php-conventions.md` | `app/**/*.php` | Class imports, type hints, named arguments, PHPDoc patterns |
+| `controller-conventions.md` | `app/Http/Controllers/**/*.php` | Inertia props, API responses, validation |
+| `controller-responses.md` | `app/Http/Controllers/**/*.php` | When to use Inertia vs JSON responses |
+| `form-data-classes.md` | `app/Data/**/*.php`, `app/Http/Controllers/**/*.php` | Form Data Classes pattern |
+| `naming-conventions.md` | `app/**/*.php` | Domain-specific naming for Data classes |
+| `database-conventions.md` | `database/migrations/*.php` | Migration patterns, indexes, foreign keys |
+| `testing-conventions.md` | `tests/**/*.php` | Test structure, factory usage, assertions |
 
 ## Quick Validation Checklist
 
@@ -98,14 +28,3 @@ Before submitting your code, scan for these red flags:
 - [ ] Any generic class names like `GetDataRequest` or `ConfigData`? → Should be domain-specific
 - [ ] Any Data class properties outside constructor? → Should use constructor property promotion
 - [ ] Missing `#[TypeScript()]` on Inertia Props or API Response Data classes?
-
-**If you find any red flags, go back and read the relevant convention file.**
-
----
-
-## How to Use
-
-1. Identify what you're working on (controller, form, test, etc.)
-2. Read the relevant convention files listed above
-3. Write your code following the conventions
-4. Run the validation checklist before submitting

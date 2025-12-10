@@ -1,3 +1,7 @@
+---
+paths: resources/js/**/*.{vue,ts,tsx}
+---
+
 # Vue.js Component Development Conventions
 
 Guide for creating modern, maintainable Vue 3 components using Composition API, TypeScript, and best practices.
