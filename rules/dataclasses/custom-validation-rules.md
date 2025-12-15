@@ -523,7 +523,14 @@ class ValidProductCode extends ObjectValidationAttribute implements ValidationRu
 
 ### Example 3: Accessing Other Fields
 
-**⚠️ Important limitation:** In unit tests and some contexts, `request()->input()` may not work. For validation rules that need access to other fields, prefer using FieldReference with CustomValidationAttribute (Approach 1) or use standard Laravel rules.
+**🚨 CRITICAL: Never use `request()` in validation attributes!**
+
+See `http-context-dependencies.md` for the full explanation. In short: `request()` returns null outside HTTP context (tests, CLI, queues), so validation attributes using it will silently fail.
+
+**For cross-field validation, use one of these approaches:**
+1. `CustomValidationAttribute` with `FieldReference` (Approach 1) - generates Laravel rule strings
+2. Laravel's built-in rules (`prohibited_if`, `required_without`, `same`, etc.)
+3. The Data class's `rules()` method for complex cross-field logic
 
 ---
 
@@ -581,19 +588,49 @@ class ChildData extends Data
 }
 ```
 
-### 3. Accessing Other Fields in ObjectValidationAttribute
+### 3. Never Use `request()` in Validation Attributes
 
-**Problem:** `request()->input()` doesn't work in unit tests or all contexts.
+**🚨 CRITICAL: This is a common mistake that causes silent validation failures.**
+
+**Problem:** `request()->input()` returns `null` outside HTTP context - in tests, CLI, queues, and even some validation scenarios.
 
 ```php
-// ⚠️ MAY NOT WORK in tests
+// ❌ NEVER DO THIS - validation silently fails in tests!
 public function validate(string $attribute, mixed $value, Closure $fail): void
 {
-    $otherValue = request()->input('other_field'); // Unreliable!
+    $otherValue = request()->input('other_field'); // Returns null in tests!
+
+    // This condition is always false when request() returns null
+    if ($value !== null && $otherValue !== null) {
+        $fail('Both fields cannot be set');
+    }
 }
 ```
 
-**Solution:** Use FieldReference with CustomValidationAttribute instead, or accept the limitation.
+**Solution:** Use Approach 1 (CustomValidationAttribute with FieldReference) to generate Laravel rule strings that handle context correctly:
+
+```php
+// ✅ CORRECT - Use FieldReference + Laravel's built-in rules
+#[Attribute(Attribute::TARGET_PROPERTY)]
+class MutuallyExclusiveWith extends CustomValidationAttribute
+{
+    protected FieldReference $field;
+
+    public function __construct(string|FieldReference $field)
+    {
+        $this->field = is_string($field) ? new FieldReference($field) : $field;
+    }
+
+    public function getRules(ValidationPath $path): array
+    {
+        $fieldName = $this->field->getValue($path);
+        // Laravel's validator handles this correctly in all contexts
+        return ["prohibited_if:{$fieldName},!=,"];
+    }
+}
+```
+
+**See:** `http-context-dependencies.md` for the full architectural explanation of why HTTP context helpers should never be used outside controllers.
 
 ### 4. Not Implementing Required Methods
 
