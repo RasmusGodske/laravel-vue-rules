@@ -19,6 +19,8 @@ These rules are **automatically loaded** when working on PHP files in `app/`.
 | `database-conventions.md` | `database/migrations/*.php` | Migration patterns, indexes, foreign keys |
 | `testing-conventions.md` | `tests/**/*.php` | Test structure, factory usage, assertions |
 
+**See also:** `../principles/` for cross-cutting rules that apply to both backend and frontend.
+
 ## Quick Validation Checklist
 
 Before submitting your code, scan for these red flags:
@@ -30,3 +32,4 @@ Before submitting your code, scan for these red flags:
 - [ ] Any Data class properties outside constructor? → Should use constructor property promotion
 - [ ] Missing `#[TypeScript()]` on Inertia Props or API Response Data classes?
 - [ ] Any `request()`, `auth()`, or `session()` outside controllers? → Pass explicitly as parameters
+- [ ] Any cascading fallback chains when configuration is set? → Should fail explicitly (see `../principles/`)
