@@ -13,6 +13,8 @@ These rules are **automatically loaded** when working on Vue/TypeScript files.
 | `vue-conventions.md` | `resources/js/**/*.{vue,ts,tsx}` | defineModel(), Composition API, TypeScript patterns |
 | `component-composition.md` | `resources/js/Components/**/*.vue` | Component size limits, single responsibility, when to split |
 
+**See also:** `../principles/` for cross-cutting rules that apply to both backend and frontend.
+
 ## Quick Validation Checklist
 
 Before submitting your code, scan for these red flags:
@@ -23,3 +25,4 @@ Before submitting your code, scan for these red flags:
 - [ ] Missing TypeScript types on props? → Should use `PropType<T>` or interfaces
 - [ ] Using Options API (`export default { data(), methods: {} }`)? → Should use Composition API (`<script setup>`)
 - [ ] Deeply nested template structure (5+ levels)? → Should extract child components
+- [ ] Any cascading fallback chains when configuration is set? → Should fail explicitly (see `../principles/`)
