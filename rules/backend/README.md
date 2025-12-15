@@ -11,6 +11,7 @@ These rules are **automatically loaded** when working on PHP files in `app/`.
 | Rule File | Loaded For | Covers |
 |-----------|------------|--------|
 | `php-conventions.md` | `app/**/*.php` | Class imports, type hints, named arguments, PHPDoc patterns |
+| `http-context-dependencies.md` | `app/**/*.php` | Why `request()`, `auth()`, `session()` should never be used outside controllers |
 | `controller-conventions.md` | `app/Http/Controllers/**/*.php` | Inertia props, API responses, validation |
 | `controller-responses.md` | `app/Http/Controllers/**/*.php` | When to use Inertia vs JSON responses |
 | `form-data-classes.md` | `app/Data/**/*.php`, `app/Http/Controllers/**/*.php` | Form Data Classes pattern |
@@ -28,3 +29,4 @@ Before submitting your code, scan for these red flags:
 - [ ] Any generic class names like `GetDataRequest` or `ConfigData`? → Should be domain-specific
 - [ ] Any Data class properties outside constructor? → Should use constructor property promotion
 - [ ] Missing `#[TypeScript()]` on Inertia Props or API Response Data classes?
+- [ ] Any `request()`, `auth()`, or `session()` outside controllers? → Pass explicitly as parameters
