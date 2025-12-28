@@ -367,6 +367,80 @@ class UserData extends Data
 - ✅ Optional: Add static factory methods for convenience
 - ✅ Optional: Add PHPDoc block with property descriptions
 
+## 🚨 CRITICAL: Never Use request() in Data Classes
+
+**This is the most common mistake that breaks tests!** Data classes may be instantiated outside HTTP context.
+
+### ❌ WRONG - Using request() in Data Class
+
+```php
+// BLOCKED - This returns NULL in tests, queues, CLI!
+class UpdateServerData extends Data
+{
+    public static function rules(ValidationContext $context): array
+    {
+        // ❌ NEVER DO THIS - request() returns null outside HTTP!
+        $serverId = request()->route('server')?->id;
+
+        return [
+            'discord_channel_id' => [
+                Rule::unique('servers')->ignore($serverId),
+            ],
+        ];
+    }
+}
+```
+
+**Why it fails:** `Data::validateAndCreate()` can be called from tests, queue jobs, or CLI commands where `request()` returns `null`.
+
+### ✅ CORRECT - Pass Context Explicitly
+
+```php
+class UpdateServerData extends Data
+{
+    public function __construct(
+        #[Max(255)]
+        public string $name,
+
+        public string $discord_channel_id,
+    ) {}
+
+    /**
+     * Factory method with explicit server ID for unique validation
+     */
+    public static function validateAndCreateForServer(array $data, int $ignoreServerId): self
+    {
+        $validator = Validator::make($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'discord_channel_id' => [
+                'required',
+                'string',
+                Rule::unique('servers', 'discord_channel_id')->ignore($ignoreServerId),
+            ],
+        ]);
+
+        $validator->validate();
+        return self::from($data);
+    }
+}
+
+// Controller passes the ID explicitly
+$data = UpdateServerData::validateAndCreateForServer(
+    data: $request->all(),
+    ignoreServerId: $server->id,
+);
+```
+
+### Quick Test
+
+**Ask yourself:** "Would this Data class work in `php artisan tinker`?"
+
+If the answer is "no" because of `request()`, `auth()`, or `session()`:
+1. Create a custom factory method that accepts the value explicitly
+2. Have the controller pass the value when calling the factory method
+
+---
+
 ## Validation with Annotations
 
 **📚 For custom validation rules, see [custom-validation-rules.md](./custom-validation-rules.md) - Complete guide with working examples.**
@@ -797,8 +871,20 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 ## Final Reminder
 
-**Top 3 mistakes to avoid:**
+**Top 4 mistakes to avoid:**
 
-1. ❌ **Defining properties outside constructor** - Always use constructor property promotion
-2. ❌ **Writing manual rules()** - Always use validation annotations
-3. ❌ **Using array instead of Collection** - Always use `Collection` with `#[DataCollectionOf]`
+1. ❌ **Using request() in Data classes** - Breaks tests, queues, CLI (see CRITICAL section above)
+2. ❌ **Defining properties outside constructor** - Always use constructor property promotion
+3. ❌ **Writing manual rules()** - Always use validation annotations
+4. ❌ **Using array instead of Collection** - Always use `Collection` with `#[DataCollectionOf]`
+
+### Detection Checklist
+
+Before submitting Data class code, search for:
+
+- [ ] `request()->` - NEVER use in Data classes
+- [ ] `auth()->` - NEVER use in Data classes
+- [ ] `session()->` - NEVER use in Data classes
+- [ ] Properties defined outside constructor - Should be in constructor with promotion
+- [ ] `public function rules()` - Should use validation annotations instead
+- [ ] `public array $items` - Should be `Collection` with `#[DataCollectionOf]`
