@@ -449,6 +449,100 @@ Before considering a controller complete:
 - ✅ Uses named routes for redirects
 - ✅ Uses route model binding for resource parameters
 
+---
+
+## Common Mistakes (From Real Agent Reviews)
+
+These mistakes were caught in code review and blocked from merging:
+
+### ❌ Mistake 1: Creating FormRequest Instead of Data Class
+
+```php
+// BLOCKED - Agent created a FormRequest class
+// app/Http/Requests/StoreServerRequest.php
+class StoreServerRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'discord_channel_id' => ['required', 'string', 'unique:servers'],
+        ];
+    }
+}
+```
+
+**Fix:** Create a Data class instead:
+
+```php
+// app/Data/Server/StoreServerData.php
+#[TypeScript()]
+class StoreServerData extends Data
+{
+    public function __construct(
+        #[Required]
+        #[Max(255)]
+        public string $name,
+
+        #[Required]
+        #[Unique('servers', 'discord_channel_id')]
+        public string $discord_channel_id,
+    ) {}
+}
+```
+
+### ❌ Mistake 2: Using request() in Controller Instead of Injected Request
+
+```php
+// BLOCKED - Using global helper
+public function store()
+{
+    $name = request()->input('name');  // ❌
+    $user = request()->user();         // ❌
+}
+```
+
+**Fix:** Use injected Request:
+
+```php
+public function store(Request $request)
+{
+    $data = StoreServerData::validateAndCreate($request->all());  // ✅
+    $user = $request->user();  // ✅
+}
+```
+
+### ❌ Mistake 3: Returning Raw Arrays from Inertia
+
+```php
+// BLOCKED - No TypeScript types for frontend
+return Inertia::render('Servers/Index', [
+    'servers' => $servers,
+    'canCreate' => $user->can('create', Server::class),
+]);
+```
+
+**Fix:** Use a Props Data class:
+
+```php
+return Inertia::render('Servers/Index', IndexPropsData::from([
+    'servers' => $servers,
+    'canCreate' => $user->can('create', Server::class),
+]));
+```
+
+### Detection Checklist
+
+Before submitting controller code, search for:
+
+- [ ] `extends FormRequest` - Should be Data class instead
+- [ ] `request()->` - Should use injected `$request`
+- [ ] `Inertia::render('...', [` without `PropsData::from` - Should use Props Data class
+- [ ] `response()->json([` without `ResponseData::from` - Should use Response Data class
+- [ ] Business logic (queries, calculations) in controller - Should be in service/model
+
+---
+
 ## Common Imports
 
 ```php
