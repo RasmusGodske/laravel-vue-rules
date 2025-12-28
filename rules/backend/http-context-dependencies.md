@@ -4,6 +4,19 @@ paths: app/**/*.php
 
 # HTTP Context Dependencies
 
+## 🚨 CRITICAL: Most Common Mistake in This Codebase
+
+```php
+// ❌ NEVER DO THIS - Returns NULL in tests, CLI, queues!
+$serverId = request()->route('server')?->id;
+$user = request()->user();
+$value = request()->input('field');
+```
+
+**Simple test:** Would this code work in `php artisan tinker`? If no, you're using HTTP context.
+
+---
+
 **Rule: Never use HTTP context helpers (`request()`, `auth()`, `session()`) outside of controllers. Always pass dependencies explicitly.**
 
 ## The Problem
