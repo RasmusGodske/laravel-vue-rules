@@ -6,6 +6,19 @@ paths:
 
 # Simple, Predictable Workflows (No Cascading Fallbacks)
 
+## 🚨 STOP: Are You Cascading?
+
+**Before implementing, ask yourself these questions:**
+
+1. Do I have multiple methods/approaches that solve the same problem differently?
+2. Am I checking if one approach failed, then trying another?
+3. Does my code have 3+ conditional branches trying different data sources?
+4. Am I mixing validation attributes AND manual rules in the same class?
+
+**If YES to any → You're cascading. Pick ONE approach.**
+
+---
+
 **Core Principle:** Code should follow ONE clear path. When a user configures something, honor it or fail. Never silently cascade through alternatives to "make it work."
 
 ## The Anti-Pattern: Cascading Fallbacks
