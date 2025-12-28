@@ -6,6 +6,8 @@ paths: app/**/*.php
 
 ## 🚨 CRITICAL: Most Common Mistake in This Codebase
 
+**30% of blocked agent reviews violated this rule.** Read this carefully.
+
 ```php
 // ❌ NEVER DO THIS - Returns NULL in tests, CLI, queues!
 $serverId = request()->route('server')?->id;
@@ -251,3 +253,85 @@ class OrderService
 | Unit Test | ❌ No | ❌ No | Pass values directly |
 
 **The rule is simple:** Controllers are the boundary. Extract HTTP context there, pass it explicitly everywhere else.
+
+---
+
+## Common Mistakes (From Real Agent Reviews)
+
+These mistakes were caught in code review and blocked from merging:
+
+### ❌ Mistake 1: Using request() in Spatie Data Classes
+
+```php
+// BLOCKED - Agent tried this in UpdateServerData
+class UpdateServerData extends Data
+{
+    public static function rules(ValidationContext $context): array
+    {
+        // ❌ WRONG - request() returns null in tests!
+        $serverId = request()->route('server')?->id;
+
+        return [
+            'discord_channel_id' => [
+                Rule::unique('servers')->ignore($serverId),
+            ],
+        ];
+    }
+}
+```
+
+**Why it fails:** Data class validation runs during `::validateAndCreate()`, which may be called from tests, queue jobs, or CLI commands where `request()` returns `null`.
+
+**Correct approach:** Pass the server ID explicitly:
+
+```php
+// ✅ CORRECT - Factory method with explicit parameter
+class UpdateServerData extends Data
+{
+    public static function validateAndCreateForServer(array $data, int $ignoreServerId): self
+    {
+        $validator = Validator::make($data, [
+            'discord_channel_id' => [
+                Rule::unique('servers', 'discord_channel_id')->ignore($ignoreServerId),
+            ],
+        ]);
+
+        $validator->validate();
+        return self::from($data);
+    }
+}
+
+// Controller passes the ID explicitly
+$data = UpdateServerData::validateAndCreateForServer(
+    data: $request->all(),
+    ignoreServerId: $server->id,
+);
+```
+
+### ❌ Mistake 2: request() in Custom Validation Attributes
+
+```php
+// BLOCKED - Agent tried accessing other field values via request()
+public function validate(string $attribute, mixed $value, Closure $fail): void
+{
+    // ❌ WRONG - Silently fails in tests (returns null)
+    $otherValue = request()->input('other_field');
+
+    if ($value && $otherValue) {
+        $fail('Both fields cannot be set.');
+    }
+}
+```
+
+**Correct approach:** Use `FieldReference` and Laravel's built-in rules (see Validation Attributes section above).
+
+### Detection Checklist
+
+Before submitting code, search for these patterns:
+
+- [ ] `request()->` outside of controller methods
+- [ ] `auth()->` outside of controller methods
+- [ ] `session()->` outside of controller methods
+- [ ] `request()` in any Data class
+- [ ] `request()` in any Service class
+- [ ] `request()` in any validation attribute
