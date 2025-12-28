@@ -6,6 +6,21 @@ paths: app/Http/Controllers/**/*.php
 
 Guide for creating clean, maintainable controllers in Laravel with Inertia.js.
 
+## 🚨 Quick Reference - Critical Rules
+
+**Before writing ANY controller code, remember these non-negotiable rules:**
+
+| Rule | ❌ Don't | ✅ Do |
+|------|----------|-------|
+| **Validation** | `FormRequest` classes | `Data::validateAndCreate()` |
+| **Inertia Props** | Raw arrays `['user' => $user]` | `PropsData::from([...])` with `#[TypeScript()]` |
+| **JSON Responses** | `response()->json([...])` | `ResponseData::from([...])` with `#[TypeScript()]` |
+| **Business Logic** | In controllers | In services/models |
+
+**The #1 mistake:** Using Laravel's `FormRequest` for validation instead of Spatie Data classes.
+
+---
+
 ## Controller Structure
 
 Controllers should be thin and focused on HTTP concerns:
