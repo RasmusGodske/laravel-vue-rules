@@ -17,6 +17,8 @@ These rules are **automatically loaded** when working on PHP files in `app/`.
 | `form-data-classes.md` | `app/Data/**/*.php`, `app/Http/Controllers/**/*.php` | Form Data Classes pattern |
 | `naming-conventions.md` | `app/**/*.php` | Domain-specific naming for Data classes |
 | `database-conventions.md` | `database/migrations/*.php` | Migration patterns, indexes, foreign keys |
+| `migration-workflow.md` | `database/migrations/**/*.php` | When to modify vs create new migrations (unpublished vs published features) |
+| `service-instantiation.md` | `app/**/*.php` | Dependency injection over `new` keyword for services |
 | `testing-conventions.md` | `tests/**/*.php` | Test structure, factory usage, assertions |
 
 **See also:** `../principles/` for cross-cutting rules that apply to both backend and frontend.
