@@ -12,6 +12,7 @@ These rules are **automatically loaded** when working on Vue/TypeScript files.
 |-----------|------------|--------|
 | `vue-conventions.md` | `resources/js/**/*.{vue,ts,tsx}` | defineModel(), Composition API, TypeScript patterns |
 | `component-composition.md` | `resources/js/Components/**/*.vue` | Component size limits, single responsibility, when to split |
+| `component-size-and-organization.md` | `resources/js/**/*.vue` | Hard limits enforcement, red flags, refactoring patterns for bloated components |
 
 **See also:** `../principles/` for cross-cutting rules that apply to both backend and frontend.
 
@@ -20,7 +21,9 @@ These rules are **automatically loaded** when working on Vue/TypeScript files.
 Before submitting your code, scan for these red flags:
 
 - [ ] Using `modelValue` prop + manual `emit('update:modelValue')`? → Should use `defineModel()`
-- [ ] Component template over 100-150 lines? → Should split into smaller components
+- [ ] Component template over 150 lines? → **STOP and refactor NOW** (see `component-size-and-organization.md`)
+- [ ] Component script over 200 lines? → **STOP and refactor NOW** (see `component-size-and-organization.md`)
+- [ ] Multiple modals/dialogs inline? → Extract each to separate component
 - [ ] Component handling multiple responsibilities (data fetching + forms + display)? → Should split concerns
 - [ ] Missing TypeScript types on props? → Should use `PropType<T>` or interfaces
 - [ ] Using Options API (`export default { data(), methods: {} }`)? → Should use Composition API (`<script setup>`)
