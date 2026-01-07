@@ -14,6 +14,8 @@ These rules are **automatically loaded** when working on Playwright E2E test fil
 
 | Rule File | Loaded For | Covers |
 |-----------|------------|--------|
+| `data-class-organization.md` | `app/Data/Controllers/E2E/**/*.php` | E2E Data class structure and naming |
+| `fixture-organization.md` | `e2e/fixtures/**/*.ts` | E2E API client structure |
 | `database-setup.md` | `e2e/**/*.ts` | SQLite isolation, .env.e2e, server script |
 | `smoke-tests.md` | `e2e/tests/**/*.ts` | Console error collection, smoke test pattern |
 | `test-conventions.md` | `e2e/tests/**/*.ts` | Test structure, fixtures, assertions |
@@ -24,19 +26,33 @@ These rules are **automatically loaded** when working on Playwright E2E test fil
 
 ```
 e2e/
-├── docs/                        # Project-specific documentation
-│   ├── architecture.md          # Design decisions and philosophy
-│   ├── database-isolation.md    # Database setup details
-│   ├── test-data-management.md  # Test data API details
-│   └── writing-tests.md         # How to write tests
 ├── fixtures/                    # Custom Playwright fixtures
+│   ├── api/                     # E2E API clients
+│   │   ├── BaseE2EApi.ts        # Shared HTTP patterns
+│   │   ├── CustomerE2EApi.ts    # Customer resource
+│   │   ├── UserE2EApi.ts        # User resource
+│   │   ├── CustomerUserE2EApi.ts # CustomerUser pivot resource
+│   │   └── index.ts             # Barrel export
+│   ├── core/
+│   │   └── TestDataOrchestrator.ts # High-level test setup
 │   ├── base.fixture.ts          # Extended test with authenticatedPage
-│   ├── test-data.ts             # Helper for API-based test data
+│   ├── test-data.ts             # Public API exports
 │   └── console-errors.ts        # Console error collection utility
-├── pages/                       # Page Object Models (mirrors resources/js/Pages/)
+├── pages/                       # Page Object Models
 ├── scripts/
 │   └── e2e-server.sh            # Server startup script
-├── tests/                       # Test files (mirrors resources/js/Pages/)
+├── tests/
+│   ├── routes/                  # Route-based tests (mirror URL routes)
+│   │   ├── app/                 # /app/* routes
+│   │   │   ├── users/
+│   │   │   │   ├── index/       # GET /app/users
+│   │   │   │   ├── create/      # GET /app/users/create
+│   │   │   │   └── edit/        # GET /app/users/{id}/edit
+│   │   │   └── dashboard/
+│   │   │       └── index/       # GET /app/dashboard
+│   │   └── auth/                # /auth/* routes (login, register, etc.)
+│   ├── flows/                   # Multi-page user journeys (future)
+│   └── components/              # Shared component tests (future)
 └── README.md                    # Project-specific quick start
 ```
 
@@ -117,9 +133,10 @@ npm run e2e:debug        # Debug mode
 
 | Aspect | Convention |
 |--------|------------|
-| **Test directories** | Mirror `resources/js/Pages/` with PascalCase |
+| **Route tests** | `e2e/tests/routes/` mirrors URL routes exactly |
+| **Directory names** | Match route segments exactly (e.g., `user_settings/`) |
 | **Test files** | kebab-case, feature-focused names |
-| **Smoke tests** | Every page needs `smoke.spec.ts` |
+| **Smoke tests** | Every route needs `smoke.spec.ts` |
 | **Auth tests** | Use `authenticatedPage` fixture |
 | **No-auth tests** | Use `page` fixture directly |
 | **Port** | 8081 (E2E), 8080 (dev) |
