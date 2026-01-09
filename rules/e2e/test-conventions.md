@@ -10,31 +10,45 @@ Guidelines for writing Playwright E2E tests.
 
 ## Test Directory Structure
 
-**CRITICAL:** Test directories MUST mirror the structure of `resources/js/Pages/`, with each Vue page becoming a directory containing multiple test files.
+**CRITICAL:** Route tests MUST be placed in `e2e/tests/routes/` and mirror the URL route structure, NOT the Vue file structure.
+
+### Why Routes, Not Files?
+
+1. **One Form.vue → Multiple routes**: A single `Form.vue` often handles both `/create` and `/{id}/edit`
+2. **User perspective**: Users interact with routes, not files
+3. **Different test scenarios**: Create and Edit have different data requirements
+4. **Claude can validate**: Routes can be validated against Laravel's route list
+
+### Route-Based Structure
 
 ```
-resources/js/Pages/                    e2e/tests/
-├── App/                               ├── App/
-│   └── Commissions/                   │   └── Commissions/
-│       ├── Index.vue          →       │       ├── Index/
-│       │                              │       │   ├── filtering.spec.ts
-│       │                              │       │   ├── sorting.spec.ts
-│       │                              │       │   └── bulk-actions.spec.ts
-│       ├── Create.vue         →       │       ├── Create/
-│       │                              │       │   ├── validation.spec.ts
-│       │                              │       │   └── submission.spec.ts
-│       └── Edit.vue           →       │       └── Edit/
-│                                      │           └── update-fields.spec.ts
-└── Auth/                              └── Auth/
-    └── Login.vue              →           └── Login/
-                                               ├── form.spec.ts
-                                               └── validation.spec.ts
+URL Routes                             e2e/tests/routes/
+                                       ├── app/
+GET /app/users                   →     │   └── users/
+                                       │       ├── index/
+                                       │       │   ├── smoke.spec.ts
+                                       │       │   ├── filtering.spec.ts
+                                       │       │   └── bulk-actions.spec.ts
+GET /app/users/create            →     │       ├── create/
+                                       │       │   ├── smoke.spec.ts
+                                       │       │   └── validation.spec.ts
+GET /app/users/{id}/edit         →     │       └── edit/
+                                       │           ├── smoke.spec.ts
+                                       │           └── update-fields.spec.ts
+                                       └── auth/
+GET /login                       →         ├── login/
+                                           │   ├── smoke.spec.ts
+                                           │   └── form.spec.ts
+GET /register                    →         └── register/
+                                               └── smoke.spec.ts
 ```
 
 ### Directory Naming
 
-- **Use PascalCase** to match Vue pages exactly
-- `resources/js/Pages/App/Dashboard/Index.vue` → `e2e/tests/App/Dashboard/Index/`
+- **Match route segments exactly** - use the same casing as the Laravel route
+- `GET /app/users` → `e2e/tests/routes/app/users/index/`
+- `GET /app/user_settings/create` → `e2e/tests/routes/app/user_settings/create/`
+- Run `php artisan route:list --method=GET` to see exact route paths
 
 ### Test File Naming
 
@@ -191,14 +205,52 @@ test('test 2', async ({ authenticatedPage }) => {
 })
 ```
 
+## Verifying Form Submissions
+
+**Never hardcode URL patterns in tests.** Use the destination page object instead.
+
+```typescript
+// ❌ BAD - Hardcoded URL pattern
+await createPage.form.submit()
+await page.waitForURL(/.*\/users/, { timeout: 15000 })
+
+// ✅ GOOD - Use destination page object
+const indexPage = new UsersIndexPage(page)
+await createPage.form.submit()
+await indexPage.expectNavigatedTo()
+```
+
+**Better: Verify the data actually appears in the list:**
+
+```typescript
+// ✅ BEST - Verify redirect AND data persistence
+const indexPage = new UsersIndexPage(page)
+const userName = 'New Test User'
+
+await createPage.form.fill({ name: userName, email: 'test@example.com' })
+await createPage.form.submit()
+
+await indexPage.expectNavigatedTo()
+await indexPage.expectRowVisible(userName)  // User appears in list!
+```
+
+**Why?**
+- URL patterns defined once in page objects, not duplicated in tests
+- Tests verify actual user-visible outcomes, not just redirects
+- If URLs change, update one page object instead of many tests
+
+See `page-objects.md` → "Index Page Pattern" for the page object structure.
+
 ## Quick Reference
 
 | Aspect | Convention |
 |--------|------------|
-| Directory case | PascalCase (matches Vue pages) |
+| Route tests location | `e2e/tests/routes/` |
+| Directory names | Match Laravel route segments exactly |
 | File names | kebab-case |
 | File content | Feature-focused, multiple scenarios |
 | Grouping | Use `test.describe()` for sub-features |
 | Test names | Descriptive behavior statements |
 | Auth tests | Use `authenticatedPage` fixture |
 | No-auth tests | Use `page` fixture directly |
+| Form submission | Use destination page object, not hardcoded URLs |
