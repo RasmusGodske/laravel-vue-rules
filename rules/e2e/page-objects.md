@@ -106,6 +106,59 @@ export { DashboardIndexPage } from './App/Dashboard/Index.page'
 export { SettingsFormPage } from './App/Settings/Form.page'
 ```
 
+## Index Page Pattern
+
+Index pages (list/table views) should include:
+
+1. **URL ownership** - The page owns its URL pattern
+2. **Navigation verification** - Method to verify navigation to this page
+3. **List verification** - Methods to check items exist in the list
+
+```typescript
+export class UsersIndexPage {
+  readonly page: Page
+  private readonly urlPattern = /.*\/app\/users/
+
+  constructor(page: Page) {
+    this.page = page
+  }
+
+  async goto() {
+    await this.page.goto('/app/users')
+  }
+
+  // Other tests use this after form submission
+  async expectNavigatedTo(timeout = 15000) {
+    await this.page.waitForURL(this.urlPattern, { timeout })
+  }
+
+  // Verify an item appears in the list
+  async expectRowVisible(identifier: string) {
+    const row = this.page.getByRole('row', { name: new RegExp(identifier, 'i') })
+    await expect(row).toBeVisible()
+  }
+
+  async expectRowNotVisible(identifier: string) {
+    const row = this.page.getByRole('row', { name: new RegExp(identifier, 'i') })
+    await expect(row).not.toBeVisible()
+  }
+
+  // Get row for further interaction
+  getRow(identifier: string): Locator {
+    return this.page.getByRole('row', { name: new RegExp(identifier, 'i') })
+  }
+
+  async clickEditFor(identifier: string) {
+    await this.getRow(identifier).getByRole('link', { name: /edit/i }).click()
+  }
+}
+```
+
+**Why?**
+- URL pattern defined once, not scattered across tests
+- Tests verify data appears in list, not just "redirect happened"
+- Enables clicking edit/delete for specific rows
+
 ## When to Create a Page Object
 
 Create a page object when:
