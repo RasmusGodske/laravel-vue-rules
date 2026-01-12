@@ -5,6 +5,17 @@ paths:
 
 # Contributing to Techstack Rules
 
+## 🚨 STOP: Before Writing ANY Techstack Rule
+
+**Ask yourself: Are my examples project-agnostic?**
+
+- ❌ `Commission`, `CommissionPlan`, `Trigger`, `DataSource`, `CustomerUser` → **NO!**
+- ✅ `Order`, `Product`, `User`, `Cart`, `Post`, `Comment` → **YES!**
+
+If you use project-specific names, the rule is **WRONG**. Fix it before proceeding.
+
+---
+
 ## 🚨 CRITICAL: These Rules Are Shared Across Projects
 
 The rules in `.claude/rules/techstack/` are **project-agnostic** and stored in a separate repository:
@@ -230,8 +241,25 @@ Rules without `paths` load for ALL files (use sparingly).
 
 ## Checklist Before Committing Techstack Rules
 
+- [ ] **VERIFY EXAMPLES ARE GENERIC** - Re-read every example and confirm NO project-specific names
 - [ ] Examples use generic domains (Order, User, Product), not project-specific
 - [ ] Rule is concise (aim for < 100 lines, exceptions for comprehensive guides)
 - [ ] Frontmatter has appropriate `paths`
 - [ ] Code examples are minimal and focused
 - [ ] Remember to update source repo: https://github.com/RasmusGodske/laravel-vue-rules
+
+### Common Mistake: Project-Specific Examples
+
+Even after reading this guide, it's easy to slip into using project-specific examples. **Always double-check:**
+
+```
+❌ WRONG (project-specific):
+- agent_id, sale_amount, sale_date
+- commission_plan_id, trigger_id
+- customer_user_id, data_source_id
+
+✅ CORRECT (generic):
+- user_id, product_id, order_id
+- quantity, price, total
+- customer_id, category_id
+```
