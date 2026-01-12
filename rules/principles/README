@@ -7,6 +7,8 @@ These rules apply across the entire codebase - both backend (PHP) and frontend (
 | Rule File | Loaded For | Covers |
 |-----------|------------|--------|
 | `simple-predictable-workflows.md` | `app/**/*.php`, `resources/js/**/*.{vue,ts,tsx}` | Avoiding cascading fallbacks, explicit failure modes |
+| `no-hardcoded-database-entities.md` | `app/**/*.php`, `resources/js/**/*.{vue,ts,tsx}`, `e2e/**/*.ts` | Never hardcode database IDs/names, use generated enums |
+| `nested-data-structures.md` | All files | Prefer nested objects over flat ID arrays in DTOs/APIs |
 
 ## Why These Are Separate
 
@@ -15,3 +17,5 @@ Some principles are language-agnostic and apply regardless of whether you're wri
 ## Key Principles
 
 1. **Simple, Predictable Workflows** - Code should follow one clear path. Configured options must be honored or fail explicitly - never cascade through alternatives silently.
+2. **No Hardcoded Database Entities** - Never hardcode database entity IDs or names. Always use PHP enums with `#[Typescript]` annotation to generate TypeScript types, creating a single source of truth across backend, frontend, and E2E tests.
+3. **Nested Data Structures** - Group related data in nested objects, don't scatter across parallel arrays. Enables per-item configuration and extensibility.
