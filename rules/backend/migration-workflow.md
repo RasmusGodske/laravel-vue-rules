@@ -79,9 +79,9 @@ public function up(): void
             WHERE user_id IS NOT NULL
         ');
 
-        // Drop old column
+        // Retire the old column instead of dropping it (see "Retire, Don't Erase" below)
         $table->dropForeign(['user_id']);
-        $table->dropColumn('user_id');
+        $table->renameColumn('user_id', 'retired_user_id');
     });
 }
 ```
@@ -170,6 +170,133 @@ Schema::table('orders', function (Blueprint $table) {
 
 If you find yourself writing database driver checks for "corrective" migrations on an unpublished feature, stop and delete the old migration instead.
 
+## Retire, Don't Erase: Every Published Migration Keeps a Way Back
+
+> **Don't drop a column or table that holds data — retire it. Before changing or deleting existing rows, back up what you change. `down()` must bring the data back, not just the schema.**
+
+The principle and its reasoning: [Retire, Don't Erase](https://github.com/RasmusGodske/design-principles/blob/main/skills/design-principles/retire-dont-erase/README.md). This section is how to do it in Laravel. It applies to every published migration that drops a column or table, deletes rows, or changes existing data. Unpublished migrations can simply be fixed, and recalculable data (caches, derived columns) needs no backup.
+
+A reversible migration is also quicker to review: the reviewer checks that `down()` works instead of tracing every consequence of losing the data.
+
+### Names
+
+| Thing | Name |
+|---|---|
+| Retired column | `retired_{column}`, e.g. `retired_delivery_method` |
+| Retired table | `retired_{table}`, e.g. `retired_gift_wraps` |
+| Backup of one changed table | `migration_backup_{source_table}_{purpose}`, e.g. `migration_backup_orders_status_spelling` |
+
+- One backup table **per changed table**, created by the migration that needs it.
+- Names stay within **63 characters**; Postgres silently truncates longer identifiers (MySQL rejects them above 64).
+
+### Every retired thing and every backup table gets a comment
+
+Name the migration file that created it and say why, so a developer finding it later can trace it back even if migration files are ever pruned:
+
+```php
+$table->comment('Backup made by 2024_01_15_100000_normalize_order_status_spelling: '
+    .'status of each order before "canceled" was respelled "cancelled". '
+    .'Its down() restores from here.');
+```
+
+`$table->comment()` comments a table, `->comment()` on a column comments the column. Read it back with `\d+ {table}` in psql.
+
+### Retiring a column
+
+```php
+public function up(): void
+{
+    Schema::table('orders', function (Blueprint $table) {
+        $table->renameColumn('delivery_method', 'retired_delivery_method');
+    });
+
+    Schema::table('orders', function (Blueprint $table) {
+        $table->string('retired_delivery_method')
+            ->nullable()
+            ->comment('Retired by 2024_01_15_100000_retire_delivery_method_on_orders: every order ships the same way, so nothing reads this. Kept so down() can bring it back.')
+            ->change();
+    });
+}
+
+public function down(): void
+{
+    Schema::table('orders', function (Blueprint $table) {
+        $table->string('retired_delivery_method')
+            ->nullable(false)
+            ->default('standard')
+            ->comment('How the order is shipped: standard or express')
+            ->change();
+    });
+
+    Schema::table('orders', function (Blueprint $table) {
+        $table->renameColumn('retired_delivery_method', 'delivery_method');
+    });
+}
+```
+
+- **Make it nullable.** A retired `NOT NULL` column without a default breaks every new insert, because no code fills it any more.
+- **`->change()` restates the whole column.** Attributes left out (default, nullability, comment) are dropped, so `down()` spells out the original definition in full.
+- **Remove it from the model** (casts, fillable, `@property`) in the same change. Nothing reads a retired column.
+
+Retiring a table is `Schema::rename('x', 'retired_x')` plus a table comment; `down()` renames it back.
+
+### Backing up rows you change
+
+The backup table has a foreign key to the changed row and, per changed column, `original_{column}` and `rewritten_{column}` of the same type as the source column:
+
+```php
+private const BACKUP = 'migration_backup_orders_status_spelling';
+
+public function up(): void
+{
+    Schema::create(self::BACKUP, function (Blueprint $table) {
+        $table->comment('Backup made by …: … Its down() restores from here.');
+        $table->id()->comment('Primary key');
+        $table->foreignId('order_id')->constrained('orders')->comment('Order whose status this row preserves');
+        $table->string('original_status')->comment('orders.status before this migration');
+        $table->string('rewritten_status')->comment('orders.status as this migration wrote it; down() restores only while it still equals this');
+        // … same pair for every other changed column
+        $table->timestamps();
+    });
+
+    // 1. Back up exactly the rows and columns about to change.
+    // 2. Change them.
+    // 3. Verify: every backed-up row now equals its rewritten_* values, else throw.
+}
+
+public function down(): void
+{
+    // 1. Refuse if any row no longer equals its rewritten_* values, naming those rows.
+    // 2. Restore original_*.
+    // 3. Schema::drop(self::BACKUP).
+}
+```
+
+- **Query builder or SQL, never models.** Model events would fire on every row (observers, syncs, recalculations), and the model may have changed shape by the time the migration runs elsewhere.
+- **It is all-or-nothing on Postgres.** Laravel runs each migration in a transaction (`$withinTransaction` defaults to `true`), so a failed check undoes the backup table and the rewrite together. MySQL commits DDL implicitly, so there a failed rewrite leaves the backup table behind.
+- **The foreign key protects the backup:** a backed-up row cannot be hard-deleted while its backup exists.
+
+For **deleted rows**, the backup table copies every column of the row (without the source's unique constraints and foreign keys) and has no `rewritten_` columns; `down()` inserts them back.
+
+### Erasing later
+
+Dropping a `retired_` column or table, or a `migration_backup_` table, is its own later migration, written once someone has decided it is no longer needed. Its docblock says plainly that its `down()` cannot bring the data back.
+
+### ❌ WRONG — the schema comes back, the data doesn't
+
+```php
+public function up(): void
+{
+    Schema::table('orders', fn (Blueprint $table) => $table->dropColumn('delivery_method'));
+}
+
+public function down(): void
+{
+    // Every order comes back as 'standard'; what each one actually had is gone.
+    Schema::table('orders', fn (Blueprint $table) => $table->string('delivery_method')->default('standard'));
+}
+```
+
 ## Summary
 
 **Unpublished feature?**
@@ -182,5 +309,6 @@ If you find yourself writing database driver checks for "corrective" migrations 
 - ✅ Create new corrective migration
 - ✅ Handle existing data carefully
 - ✅ Test rollback behavior
+- ✅ Retire columns and tables instead of dropping them; back up rows before changing or deleting them
 
 When in doubt, ask: "Has this migration touched a database that isn't on my local machine?" If yes, it's published.
