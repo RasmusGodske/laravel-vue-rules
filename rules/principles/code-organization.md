@@ -363,6 +363,8 @@ Create a subdirectory when:
 3. **The files serve a single feature** - Group by feature, not by type
 4. **You're creating a new domain concept** - New feature = new directory
 
+**Inside a module, this rule organises files within the module's own folders. It never creates a sub-module.** A sub-module follows deep-modules' promotion criteria: a slice of the domain, never a page, screen, tab or view of it (see the deep-modules design principle, `promotion-criteria.md`).
+
 ---
 
 ## Refactoring Existing Flat Structures
