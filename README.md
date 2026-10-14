@@ -43,6 +43,7 @@ php artisan techstack-rules:update --path=.claude/rules/custom-name
 - **naming-conventions.md** - Domain-specific naming conventions
 - **database-conventions.md** - Migration patterns, indexes, foreign keys
 - **testing-conventions.md** - Test structure, factory usage, assertions
+- **pest-conventions.md** - Writing and converting tests in Pest so they stay checkable by PHPStan
 
 ### Frontend Rules (`frontend/`)
 
