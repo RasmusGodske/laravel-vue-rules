@@ -42,8 +42,8 @@ php artisan techstack-rules:update --path=.claude/rules/custom-name
 - **form-data-classes.md** - Form Request patterns with Data classes
 - **naming-conventions.md** - Domain-specific naming conventions
 - **database-conventions.md** - Migration patterns, indexes, foreign keys
-- **testing-conventions.md** - Test structure, factory usage, assertions
-- **pest-conventions.md** - Writing and converting tests in Pest so they stay checkable by PHPStan
+- **testing-conventions.md** - What a good test checks: a real bug, factories, specific assertions, fakes
+- **pest-conventions.md** - How a Pest test file is written so PHPStan checks every call in it
 
 ### Frontend Rules (`frontend/`)
 

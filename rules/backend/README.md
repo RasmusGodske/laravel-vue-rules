@@ -19,8 +19,8 @@ These rules are **automatically loaded** when working on PHP files in `app/`.
 | `database-conventions.md` | `database/migrations/*.php` | Migration patterns, indexes, foreign keys |
 | `migration-workflow.md` | `database/migrations/**/*.php` | When to modify vs create new migrations (unpublished vs published features); retire instead of dropping, back up before changing data |
 | `service-instantiation.md` | `app/**/*.php` | Dependency injection over `new` keyword for services |
-| `testing-conventions.md` | `tests/**/*.php` | Test structure, factory usage, assertions |
-| `pest-conventions.md` | `tests/**/*.php` | Writing and converting tests in Pest: `uses()`/`covers()`, no own state on `$this`, typed helper functions |
+| `testing-conventions.md` | `tests/**/*.php` | What a good test checks: a real bug, factories, specific assertions, fakes |
+| `pest-conventions.md` | `tests/**/*.php` | How a Pest test file is written: `uses()`/`covers()`, no own state on `$this`, typed helper functions, fixed clock and seed |
 
 **See also:** `../principles/` for cross-cutting rules that apply to both backend and frontend.
 
