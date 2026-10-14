@@ -307,29 +307,24 @@ public function apiIndex(): JsonResponse
 
 ## Authorization
 
-Use policies for authorization:
+A controller decides nothing about who may see or do what. It builds the actor, calls one on-behalf service or data view, and presents the result (see `on-behalf-services.md`):
 
 ```php
-// In controller
-public function update(Request $request, Order $order): RedirectResponse
+// ✅ The on-behalf service decides; the controller presents
+public function show(Order $order, OrderOverviewDataViewService $view): Response
 {
-    // Method 1: authorize() helper
-    $this->authorize('update', $order);
+    return Inertia::render('Orders/OrderOverviewInertiaPage', $view->for($this->actor(), $order));
+}
 
-    // Method 2: Gate facade
-    if (Gate::denies('update', $order)) {
-        abort(403);
-    }
-
-    // Method 3: In route middleware
-    // Route::put('orders/{order}', [OrderController::class, 'update'])
-    //     ->middleware('can:update,order');
-
+// ❌ Authorization in the controller: an API or MCP tool calling the same action skips it
+public function show(Order $order): Response
+{
+    $this->authorize('view', $order);
     // ...
 }
 ```
 
-**Prefer:** `$this->authorize()` for clear inline authorization checks.
+How a refusal *looks* (an error page, a redirect to another tab) is the controller's choice; *whether* to refuse is the on-behalf service's.
 
 ## Query Optimization
 
