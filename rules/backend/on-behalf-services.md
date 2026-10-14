@@ -25,18 +25,18 @@ The why: the [acting-on-behalf](https://github.com/RasmusGodske/design-principle
 
 ```php
 // ✅ Controller: one line, decides nothing
-public function overview(Order $order, OrderOverviewDataViewService $view): Response
+public function overview(Order $order, OrderOverviewDataViewService $orderOverviewDataViewService): Response
 {
-    return Inertia::render('Orders/Pages/OrderOverviewInertiaPage', $view->for($this->actor(), $order));
+    return Inertia::render('Orders/Pages/OrderOverviewInertiaPage', $orderOverviewDataViewService->buildOrderOverviewView($this->actor(), $order));
 }
 
 // ✅ On-behalf service: subject + payload as separate arguments; limits passed down explicitly
-public function lines(Actor $actor, Order $order, OrderLinesActionPayloadData $payload): OrderLinesData
+public function listOrderLines(Actor $actor, Order $order, OrderLinesActionPayloadData $orderLinesActionPayloadData): OrderLinesData
 {
-    $principal = $actor->requirePrincipal(User::class);   // states the supported principal kind
-    $this->ensureMayView($principal, $order);              // not permitted to open → not found (404)
+    $principalUser = $actor->requirePrincipal(User::class);// states the supported principal kind
+    $this->ensureMayViewOrder($principalUser, $order);       // not permitted to open → not found (404)
 
-    return $this->orders->lines($order, $payload, includeCost: $principal->isAdmin());
+    return $this->orderLineQueryService->listOrderLines($order, $orderLinesActionPayloadData, includeCost: $principalUser->isAdmin());
 }
 ```
 
@@ -46,6 +46,7 @@ public function lines(Actor $actor, Order $order, OrderLinesActionPayloadData $p
 - **Actions** carry their state: `ActionData|Optional` per action (absent = not permitted; blocked = `available: false` with the reason from the same base-service function the write path refuses with).
 - **Data views never look at the actor**, embed on-behalf answers unchanged, and never call another data view.
 - **The payload is passed whole and unchanged**; it never carries the subject's id.
+- **Explicit names** (`../principles/explicit-names.md`): a property holding an on-behalf service or data view is named after its class (`$orderLineOnBehalfService`), and every method starts with its action (`listOrderLines`, `removeOrderLine`, `buildOrderOverviewView`).
 
 ## Red flags
 
@@ -53,3 +54,4 @@ public function lines(Actor $actor, Order $order, OrderLinesActionPayloadData $p
 - A controller with more than one service call, or reshaping input before passing it on
 - A base service taking the actor, or an on-behalf service running its own queries
 - `…PropsData` for a new page (it's `…ViewData` from a data view)
+- A service property named like a collection (`$orders`, `$plans`) or a method named as a bare noun (`for()`, `summary()`, `devices()`)

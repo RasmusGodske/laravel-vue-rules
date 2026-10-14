@@ -311,9 +311,9 @@ A controller decides nothing about who may see or do what. It builds the actor, 
 
 ```php
 // ✅ The on-behalf service decides; the controller presents
-public function show(Order $order, OrderOverviewDataViewService $view): Response
+public function show(Order $order, OrderOverviewDataViewService $orderOverviewDataViewService): Response
 {
-    return Inertia::render('Orders/OrderOverviewInertiaPage', $view->for($this->actor(), $order));
+    return Inertia::render('Orders/OrderOverviewInertiaPage', $orderOverviewDataViewService->buildOrderOverviewView($this->actor(), $order));
 }
 
 // ❌ Authorization in the controller: an API or MCP tool calling the same action skips it
