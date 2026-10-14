@@ -195,8 +195,8 @@ class UserRegistrationService
 class UserService
 {
     public function __construct(
-        private UserRepository $users,
-        private EmailService $email
+        private UserRepository $userRepository,
+        private EmailService $emailService
     ) {}
 }
 ```
