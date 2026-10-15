@@ -12,6 +12,7 @@ These rules are **automatically loaded** when working on PHP files in `app/`.
 |-----------|------------|--------|
 | `php-conventions.md` | `app/**/*.php` | Class imports, type hints, named arguments, PHPDoc patterns |
 | `http-context-dependencies.md` | `app/**/*.php` | Why `request()`, `auth()`, `session()` should never be used outside controllers |
+| `on-behalf-services.md` | `app/**/*.php` | On-behalf services, data views, `*ActionPayloadData` and `*ViewData`: names, places, and what controllers may not decide |
 | `controller-conventions.md` | `app/Http/Controllers/**/*.php` | Inertia props, API responses, validation |
 | `controller-responses.md` | `app/Http/Controllers/**/*.php` | When to use Inertia vs JSON responses |
 | `form-data-classes.md` | `app/Data/**/*.php`, `app/Http/Controllers/**/*.php` | Form Data Classes pattern |

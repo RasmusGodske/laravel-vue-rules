@@ -17,6 +17,8 @@ This pattern provides:
 
 ---
 
+> **New code:** the class a form submits is the action's payload: `{Entity}{Action}ActionPayloadData` in the module's `Public/Data/Payloads/`, owned by the action, passed whole and unchanged to the on-behalf service (see `on-behalf-services.md`). What the form page needs to render (the context) is that page's view: `{Entity}{View}ViewData` from a data view. The controller-owned `*RequestData` / `*ContextData` layout below is the legacy shape; keep it only where code already uses it.
+
 ## When to Use This Pattern
 
 **NEW code MUST use this pattern** for all forms that:
